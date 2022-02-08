@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Picker with JavaScript</title>
+    <link rel="stylesheet" href="colorjoe/colorjoe.css">
+    <script src="colorjoe/colorjoe.min.js"></script>
+    <style>
+        body {
+            background: #eeeeee;
+            margin: 20px;
+        }
+
+        .colorPicker {
+            background: none;
+            border: none;
+            margin: 0;
+        }
+
+        .colorPicker .oned {
+            margin-right: 0;
+        }
+
+        .container {
+            display: flex;
+            width: 500px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .config {
+            flex-grow: 1;
+            margin-left: 20px;
+        }
+
+        .config-title {
+            text-align: center;
+            padding: 15px 0;
+            font-family: sans-serif;
+            font-weight: bold;
+        }
+
+        .selected-color-text {
+            text-align: center;
+            font-family: monospace;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+        }
+
+        .selected-color,
+        .saved-color {
+            height: 15px;
+            border: 1px solid #eeeeee;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .saved-color:not(:last-of-type) {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="colorjoe"></div>
+        <div class="config">
+            <div class="config-title">Selected Color</div>
+            <div class="selected-color-text"></div>
+            <div class="selected-color"></div>
+            <div class="config-title">Saved Colors</div>
+            <div class="saved-color"></div>
+            <div class="saved-color"></div>
+            <div class="saved-color"></div>
+            <div class="saved-color"></div>
+            <div class="saved-color"></div>
+        </div>
+    </div>
+    <script>
+        class ColorPicker {
+            constructor(root) {
+                this.root = root;
+                this.colorjoe = colorjoe.rgb(this.root.querySelector(".colorjoe"));
+                this.selectedColor = null;
+                this.savedColors = this.getSavedColors();
+
+                this.colorjoe.show();
+                this.setSelectedColor("#009578");
+
+                this.colorjoe.on("change", color => {
+                    this.setSelectedColor(color.hex(), true);
+                });
+
+                this.root.querySelectorAll(".saved-color").forEach((el, i) => {
+                    this.showSavedColor(el, this.savedColors[i]);
+
+                    el.addEventListener("mouseup", e => {
+                        if (e.button == 1) {
+                            this.saveColor(this.selectedColor, i);
+                            this.showSavedColor(el, this.selectedColor);
+                        }
+
+                        this.setSelectedColor(el.dataset.color);
+                    });
+                });
+            }
+
+            setSelectedColor(color, skipCjUpdate = false) {
+                this.selectedColor = color;
+                this.root.querySelector(".selected-color-text").textContent = color;
+                this.root.querySelector(".selected-color").style.background = color;
+
+                if (!skipCjUpdate) {
+                    this.colorjoe.set(color);
+                }
+            }
+
+            getSavedColors() {
+                const saved = JSON.parse(localStorage.getItem("colorpicker-saved") || "[]");
+
+                return new Array(5).fill("#ffffff").map((defaultColor, i) => {
+                    return saved[i] || defaultColor;
+                });
+            }
+
+            showSavedColor(element, color) {
+                element.style.background = color;
+                element.dataset.color = color;
+            }
+
+            saveColor(color, i) {
+                this.savedColors[i] = color;
+                localStorage.setItem("colorpicker-saved", JSON.stringify(this.savedColors));
+            }
+        }
+
+        const cp = new ColorPicker(document.querySelector(".container"));
+    </script>
+</body>
+</html>
